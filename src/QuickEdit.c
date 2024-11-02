@@ -1,10 +1,13 @@
 #include <stdio.h>
 #include "SDL.h"
 #include <assert.h>
+#include <string.h> // Include for memset
 
 #define BOOL u32
 #define TRUE 1
 #define FALSE 0
+
+#define internal static
 #define SCREEN_WIDTH 1024
 #define SCREEN_HEIGHT 576
 
@@ -15,25 +18,22 @@ typedef Uint64 u64;
 typedef Sint32 i32;
 typedef Sint64 i64;
 
-typedef struct
-{
-	int x;
-	int y;
-	int w;
-	int h;
+typedef struct {
+    int x;
+    int y;
+    int w;
+    int h;
 } rect_t;
 
-void FillRect(rect_t rect,u32 pixel_color,u32 *screen_pixels)
-{
-	assert(screen_pixels);
-	for(int row = 0;row < rect.h;++row)
-	{
-		for(int col = 0;col < rect.w;++col)
-		{
-			screen_pixels[(row + rect.y)*SCREEN_WIDTH + col + rect.x] = pixel_color;
-		}
-	}
+internal void FillRect(rect_t rect, u32 pixel_color, u32 *screen_pixels) {
+    assert(screen_pixels);
+    for (int row = 0; row < rect.h; ++row) {
+        for (int col = 0; col < rect.w; ++col) {
+            screen_pixels[(row + rect.y) * SCREEN_WIDTH + col + rect.x] = pixel_color;
+        }
+    }
 }
+
 int main(int argc, char *argv[]) {
     // Initialize SDL
     if (SDL_Init(SDL_INIT_VIDEO) < 0) {
@@ -64,11 +64,12 @@ int main(int argc, char *argv[]) {
                                                 SDL_RENDERER_SOFTWARE);
     assert(renderer);
 
-	SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
-	
+    SDL_PixelFormat *format = SDL_AllocFormat(SDL_PIXELFORMAT_RGBA8888);
+
     SDL_Texture *screen = SDL_CreateTexture(renderer,
                                             // The pixel format of the texture.
-                                            format -> format,                                            // How the texture will be used and how frequently its contents
+                                            format->format,
+                                            // How the texture will be used and how frequently its contents
                                             // will be updated. Here, the texture will change frequently.
                                             SDL_TEXTUREACCESS_STREAMING,
                                             SCREEN_WIDTH,
@@ -83,15 +84,18 @@ int main(int argc, char *argv[]) {
     u32 *screen_pixels = (u32*)calloc(SCREEN_WIDTH * SCREEN_HEIGHT, sizeof(u32));
     assert(screen_pixels);
 
-	rect_t square = {0,0,30,30};
-	square.x = SCREEN_WIDTH;
-	square.x = square.x/2;
-	square.y = SCREEN_HEIGHT;
-	square.y = square.y/2;
-	u32 pixel_color = SDL_MapRGB(format,0,0,225);
-	FillRect(square,pixel_color,screen_pixels);
+    rect_t square = {0, 0, 30, 30};
+    square.x = SCREEN_WIDTH / 2 - square.w / 2;
+    square.y = SCREEN_HEIGHT / 2 - square.h / 2;
+    u32 pixel_color = SDL_MapRGB(format, 0, 0, 255);
+    FillRect(square, pixel_color, screen_pixels);
 
     BOOL done = FALSE;
+    BOOL pressedUp = FALSE;
+    BOOL pressedDown = FALSE;
+    BOOL pressedRight = FALSE;
+    BOOL pressedLeft = FALSE;
+
     while (!done) {
         SDL_Event event;
         while (SDL_PollEvent(&event)) {
@@ -105,12 +109,57 @@ int main(int argc, char *argv[]) {
                     case SDLK_ESCAPE:
                         done = TRUE;
                         break;
+                    case SDLK_UP:
+                        pressedUp = TRUE;
+                        break;
+                    case SDLK_DOWN:
+                        pressedDown = TRUE;
+                        break;
+                    case SDLK_LEFT:
+                        pressedLeft = TRUE;
+                        break;
+                    case SDLK_RIGHT:
+                        pressedRight = TRUE;
+                        break;
+                    default:
+                        break;
+                }
+            }
+            if (event.type == SDL_KEYUP) {
+                SDL_Keycode code = event.key.keysym.sym;
+                switch (code) {
+                    case SDLK_UP:
+                        pressedUp = FALSE;
+                        break;
+                    case SDLK_DOWN:
+                        pressedDown = FALSE;
+                        break;
+                    case SDLK_LEFT:
+                        pressedLeft = FALSE;
+                        break;
+                    case SDLK_RIGHT:
+                        pressedRight = FALSE;
+                        break;
                     default:
                         break;
                 }
             }
         }
 
+        memset(screen_pixels, 0, SCREEN_WIDTH * SCREEN_HEIGHT * sizeof(u32));
+        if (pressedUp) {
+            square.y -= 1;
+        }
+        if (pressedDown) {
+            square.y += 1;
+        }
+        if (pressedRight) {
+            square.x += 1;
+        }
+        if (pressedLeft) {
+            square.x -= 1;
+        }
+        FillRect(square, pixel_color, screen_pixels);
 
         SDL_UpdateTexture(screen, NULL, screen_pixels, SCREEN_WIDTH * sizeof(u32));
         SDL_RenderClear(renderer);
@@ -119,6 +168,14 @@ int main(int argc, char *argv[]) {
 
         SDL_Delay(14);
     }
+
+
+    free(screen_pixels);
+    SDL_FreeFormat(format);
+    SDL_DestroyTexture(screen);
+    SDL_DestroyRenderer(renderer);
+    SDL_DestroyWindow(win);
+    SDL_Quit();
 
     return 0;
 }

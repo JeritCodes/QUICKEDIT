@@ -1,10 +1,10 @@
 # Compiler and flags
 CC = gcc
-CFLAGS = -g -Wall -I/usr/include/SDL2
-LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lSDL2
+CFLAGS = -g -Wall -I/usr/include/SDL2 -I/usr/include/SDL2_image
+LDFLAGS = -L/usr/lib/x86_64-linux-gnu -lSDL2 -lSDL2_image
 
 # Source files
-SRCS = QuickEdit.c
+SRCS = QuickEdit.c bitmap.c
 
 # Object files
 OBJS = $(SRCS:.c=.o)

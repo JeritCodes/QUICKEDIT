@@ -15,12 +15,12 @@ The app helps you “procrastinate mindfully.” Whenever the user starts typing
 
 But it also tracks how well they're procrastinating, giving achievement points for extended periods of idleness.
 
-### The Problem (that doesn't exist)
+### The Problem 
 Introducing a text editor that addresses the non-issue of "too much simplicity" 
 
 by offering unnecessary features that complicate the user experience—because why should editing text be straightforward?
 
-### The Solution (that nobody asked for)
+### The Solution
 Introducing QuickEdit: a text editor that encourages you to take a break and enjoy the art of distraction.
 
 With quirky features designed to make procrastination enjoyable,
